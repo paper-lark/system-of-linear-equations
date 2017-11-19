@@ -126,9 +126,9 @@ int matrix_print_vector(double *vector, unsigned n) {
 /*
  * Function solves matrix equation Ax = f using Gaussian Elimination method
  */
-void forward(double **matrix, unsigned n, unsigned m);
-void back(double **matrix, unsigned n, unsigned m); 
-void normalize(double **matrix, unsigned n, unsigned m);
+void matrix_forward(double **matrix, unsigned n, unsigned m);
+void matrix_back(double **matrix, unsigned n, unsigned m); 
+void matrix_normalize(double **matrix, unsigned n, unsigned m);
 
 double *matrix_gauss_solve(double **matrix, const double *f, unsigned n) {
    // create augmented matrix
@@ -144,27 +144,27 @@ double *matrix_gauss_solve(double **matrix, const double *f, unsigned n) {
    }
 
    // perform forward elimination and normalization
-   forward(aug, n, n + 1);
-   normalize(aug, n, n + 1);
+   matrix_forward(aug, n, n + 1);
+   matrix_normalize(aug, n, n + 1);
+   matrix_back(aug, n, n + 1);
 
    // calculate result
    double *result;
    if ((result = malloc(n * sizeof(result[0]))) == NULL) {
+       matrix_destroy(aug, n);
        return NULL;
    }
-   back(aug, n, n + 1);
    for (unsigned i = 0; i < n; i++) {
        result[i] = aug[i][n];
    }
 
    // free memory
    matrix_destroy(aug, n);
-
    return result;
 }
 
 /* Function returns the number of the row with the greatest primary element */
-unsigned find_greatest(double **matrix, unsigned current, unsigned n) {
+unsigned matrix_find_greatest(double **matrix, unsigned current, unsigned n) {
     unsigned result = current;
     for (unsigned j = current + 1; j < n; j++) {
         if (matrix[j][current] != 0 && (!matrix[result][current] || fabs(matrix[result][current]) < fabs(matrix[j][current])) ) {
@@ -175,14 +175,14 @@ unsigned find_greatest(double **matrix, unsigned current, unsigned n) {
 }
 
 /* Swap lines */
-void swap(double **matrix, unsigned i, unsigned j) {
+void matrix_swap_rows(double **matrix, unsigned i, unsigned j) {
     double *temp = matrix[i];
     matrix[i] = matrix[j];
     matrix[j] = temp;
 }
 
 /* Function subtracts current line from the following */
-void subtract(double **matrix, unsigned current, unsigned n, unsigned m) {
+void matrix_subtract(double **matrix, unsigned current, unsigned n, unsigned m) {
     for (unsigned i = current + 1; i < n; i++) {
         double multiplier = matrix[i][current] / matrix[current][current];
         if (multiplier != 0) {
@@ -194,19 +194,19 @@ void subtract(double **matrix, unsigned current, unsigned n, unsigned m) {
 }
 
 /* Function performs Forward Elimination of the augmented matrix n * m (n >= m) */
-void forward(double **matrix, unsigned n, unsigned m) {
+void matrix_forward(double **matrix, unsigned n, unsigned m) {
     for (unsigned i = 0; i < n; i++) {
         // subtract greatest from others
-        unsigned greatest = find_greatest(matrix, i, n);
+        unsigned greatest = matrix_find_greatest(matrix, i, n);
         if (i != greatest) {
-            swap(matrix, i, greatest);
+            matrix_swap_rows(matrix, i, greatest);
         }
-        subtract(matrix, i, n, m);
+        matrix_subtract(matrix, i, n, m);
     }
 }
 
 /* Function normalizes upper triangular n * m matrix */
-void normalize(double **matrix, unsigned n, unsigned m) {
+void matrix_normalize(double **matrix, unsigned n, unsigned m) {
     for (unsigned i = 0; i < n; i++) {
         for (unsigned j = i + 1; j < m; j++) {
             matrix[i][j] /= matrix[i][i];
@@ -216,7 +216,7 @@ void normalize(double **matrix, unsigned n, unsigned m) {
 }
 
 /* Function performs back substitution */
-void back(double **matrix, unsigned n, unsigned m) {
+void matrix_back(double **matrix, unsigned n, unsigned m) {
     for (unsigned i = n - 1; i > 0; i--) {
         for (unsigned prev = 0; prev < i; prev++) {
             // subtract current row from previous
@@ -246,7 +246,7 @@ double matrix_determinant(double **matrix, unsigned n) {
             aug[i][j] = matrix[i][j];
         }
     }
-    forward(aug, n, n);
+    matrix_forward(aug, n, n);
 
     // calculate determinant
     double result = 1;
@@ -275,9 +275,9 @@ double **matrix_inverse(double **matrix, unsigned n) {
     }
 
     // perform forward elimination and back substitution
-    forward(aug, n, 2 * n);
-    normalize(aug, n, 2 * n);
-    back(aug, n, 2 * n);
+    matrix_forward(aug, n, 2 * n);
+    matrix_normalize(aug, n, 2 * n);
+    matrix_back(aug, n, 2 * n);
 
     // copy the result
     double **result = matrix_create(n, n);

@@ -6,10 +6,12 @@
 
 /* Constants */
 typedef enum {
-    SOR = 1, GAUSS = 2
+    SOR, GAUSS, MODIFIED
 } Method;
 
-#define OMEGA 1.3333333333333333
+#ifndef OMEGA
+    #define OMEGA 1.3333333333333333
+#endif
 #define PRECISION 0.00001
 
 
@@ -22,8 +24,9 @@ extern int matrix_print_vector(double *vector, unsigned n);
 extern void matrix_destroy(double **matrix, unsigned n);
 extern double matrix_determinant(double **matrix, unsigned n);
 extern double **matrix_inverse(double **matrix, unsigned n);
+
 extern double *matrix_gauss_solve(double **matrix, const double *f, unsigned n);
-extern void matrix_iteration_next(double **a, double **b, const double *f, unsigned n, double omega, double *current);
+extern double *matrix_modified_solve(double **matrix, const double *f, unsigned n);
 extern double *matrix_iteration_solve(double **a, const double *f, unsigned n, double omega, const double *start, double precision);
 
 extern unsigned functions_init(unsigned task);
@@ -59,7 +62,7 @@ int main(int argc, char *argv[]) {
         matrix = matrix_fill();
         f = matrix_fill_vector(x);
     } else {
-        fprintf(stderr, "> error: wrong number arguments: %s gauss|sor [formula x]\n",
+        fprintf(stderr, "> error: wrong number arguments: %s gauss|mod|dor [formula x]\n",
             argv[0]);
         exit(2);
     }
@@ -70,11 +73,13 @@ int main(int argc, char *argv[]) {
     if (strcmp(argv[1], "gauss") == 0) {
         // Gaussian elimination method
         method = GAUSS;
+    } else if (strcmp(argv[1], "mod") == 0) {
+        // Modified Gaussian elimination method
+        method = MODIFIED;
     } else if (strcmp(argv[1], "sor") == 0) {
         // SOR method
         method = SOR;
-
-        // create first approximation
+        // create first approximation vector
         for (unsigned i = 0; i < n; i++) {
             start[i] = 0;
         }
@@ -111,10 +116,19 @@ int main(int argc, char *argv[]) {
 
         // calculate solution using Gaussian elimination method
         double *solution;
-        if (method == GAUSS) {
-            solution = matrix_gauss_solve(matrix, f, n);
-        } else {
-            solution = matrix_iteration_solve(matrix, f, n, OMEGA, start, PRECISION);
+        switch (method) {
+            case GAUSS:
+                solution = matrix_gauss_solve(matrix, f, n);
+                break;
+            case MODIFIED:
+                solution = matrix_modified_solve(matrix, f, n);
+                break;
+            case SOR:
+                solution = matrix_iteration_solve(matrix, f, n, OMEGA, start, PRECISION);
+                break;
+            default:
+                fprintf(stderr, "> error: unknown method option\nterminationg...\n");
+                exit(1);
         }
 
         if (solution == NULL) {
@@ -135,5 +149,5 @@ int main(int argc, char *argv[]) {
     matrix_destroy(matrix, n);
 
     // completion message
-    printf("Program sucessfully finished!\n");
+    printf("> program sucessfully finished!\n");
 }
