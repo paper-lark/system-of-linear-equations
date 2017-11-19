@@ -12,7 +12,7 @@ typedef enum {
 #ifndef OMEGA
     #define OMEGA 1.3333333333333333
 #endif
-#define PRECISION 0.00001
+#define PRECISION 0.00000001
 
 
 /* Prototypes */
