@@ -3,3 +3,32 @@
 
 # Builds
 bin/*
+
+# TeX files
+report/*.aux
+report/*.glo
+report/*.idx
+report/*.log
+report/*.toc
+report/*.ist
+report/*.acn
+report/*.acr
+report/*.alg
+report/*.bbl
+report/*.blg
+report/*.dvi
+report/*.fdb_latexmk
+report/*.fls
+report/*.glg
+report/*.gls
+report/*.ilg
+report/*.ind
+report/*.log
+report/*.lof
+report/*.lot
+report/*.maf
+report/*.mtc
+report/*.mtc1
+report/*.out
+report/*.synctex.gz
+report/*.toc

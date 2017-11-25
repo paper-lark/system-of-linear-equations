@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
         matrix = matrix_fill();
         f = matrix_fill_vector(x);
     } else {
-        fprintf(stderr, "> error: wrong number arguments: %s gauss|mod|dor [formula x]\n",
+        fprintf(stderr, "> error: wrong number arguments: %s gauss|mod|sor [formula x]\n",
             argv[0]);
         exit(2);
     }
