@@ -2,10 +2,12 @@
 .DS_Store
 
 # Builds
-bin/*
+build/*
 
 # TeX files
 report/*.aux
+report/*.bcf
+report/*.run.xml
 report/*.glo
 report/*.idx
 report/*.log

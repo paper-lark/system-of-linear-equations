@@ -1,11 +1,11 @@
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
-/*
- * Functions for tasks in Appendix 2.
- * Tasks 1-4
- */
 
+/*
+ * Functions for tasks from Appendix 2.
+ * Tasks 1-4.
+ */
 extern double **matrix_create(unsigned n, unsigned m);
 
 static unsigned M = 0;
@@ -61,7 +61,7 @@ static double *f4(double x) {
 }
 
 /*
- * Function initializes the module for using formula-determined matrices
+ * Function initializes the module for using formula-determined matrices.
  */ 
 unsigned functions_init(unsigned task) {
 	switch(task) {
@@ -92,6 +92,9 @@ unsigned functions_init(unsigned task) {
 	return n;
 }
 
+/*
+ * Function fills the matrix A using the specified formula.
+ */
 double **matrix_fill() {
 	const double q = 1.001 - 2 * M * 0.001;
 

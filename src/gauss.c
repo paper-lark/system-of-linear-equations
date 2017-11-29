@@ -2,6 +2,11 @@
 #include <errno.h>
 #include <stdio.h>
 #include <math.h>
+#include <stdbool.h>
+
+int matrix_forward(double **matrix, unsigned n, unsigned m, bool to_swap);
+void matrix_back(double **matrix, unsigned n, unsigned m); 
+void matrix_normalize(double **matrix, unsigned n, unsigned m);
 
 /* 
  * Function allocates memory for a matrix of size n * m on the heap and returns a handle to it.
@@ -26,7 +31,7 @@ double **matrix_create(unsigned n, unsigned m) {
 }
 
 /*
- * Function releases memory occupied by matrix of size n * n.
+ * Function releases memory occupied by a matrix of size n * n.
  */
 void matrix_destroy(double **matrix, unsigned n) {
     for (unsigned i = 0; i < n; i++) {
@@ -38,7 +43,6 @@ void matrix_destroy(double **matrix, unsigned n) {
 /*
  * Function reads a matrix of size n * n and returns a handle to it.
  */
-
 double **matrix_read(unsigned n) {
     double **matrix;
     if ((matrix = matrix_create(n, n)) == NULL) {
@@ -63,6 +67,7 @@ double **matrix_read(unsigned n) {
 double *matrix_read_vector(unsigned n) {
     double *vector;
     if ((vector = malloc(n * sizeof(vector[0]))) == NULL) {
+        // failed to allocate memory
         return NULL;
     }
     for (unsigned i = 0; i < n; i++) {
@@ -86,15 +91,15 @@ int matrix_print(double **matrix, unsigned n) {
             if (matrix[i][j] == 0) {
                 matrix[i][j] = +0.0;
             }
-            // print
+            // print matrix row
             if (printf("%15.10g ", matrix[i][j]) == 0) {
                 // failed to print
                 return -1;
             }
         }
-        // put 'end of line'
+        // put 'end of line' at the end
         if (putchar('\n') == EOF) {
-            // failed to print    
+            // failed to print
             return -1;
         }
     }
@@ -110,13 +115,13 @@ int matrix_print_vector(double *vector, unsigned n) {
         if (vector[i] == 0) {
             vector[i] = +0.0;
         }
-        // print
+        // print vector
         if (printf("%15.10g ", vector[i]) == 0) {
             // failed to print
             return -1;
         }
     }
-    // put 'end of line'
+    // put 'end of line' at the end
     if (putchar('\n') == EOF) {
         return -1;
     }
@@ -124,12 +129,8 @@ int matrix_print_vector(double *vector, unsigned n) {
 }
 
 /*
- * Function solves matrix equation Ax = f using Gaussian Elimination method
+ * Function solves matrix equation Ax = f using Gaussian Elimination method.
  */
-void matrix_forward(double **matrix, unsigned n, unsigned m);
-void matrix_back(double **matrix, unsigned n, unsigned m); 
-void matrix_normalize(double **matrix, unsigned n, unsigned m);
-
 double *matrix_gauss_solve(double **matrix, const double *f, unsigned n) {
    // create augmented matrix
    double **aug = matrix_create(n, n + 1);
@@ -143,12 +144,12 @@ double *matrix_gauss_solve(double **matrix, const double *f, unsigned n) {
        aug[i][n] = f[i];
    }
 
-   // perform forward elimination and normalization
-   matrix_forward(aug, n, n + 1);
+   // perform forward elimination, normalization and back substitution
+   matrix_forward(aug, n, n + 1, true);
    matrix_normalize(aug, n, n + 1);
    matrix_back(aug, n, n + 1);
 
-   // calculate result
+   // calculate the result
    double *result;
    if ((result = malloc(n * sizeof(result[0]))) == NULL) {
        matrix_destroy(aug, n);
@@ -163,7 +164,9 @@ double *matrix_gauss_solve(double **matrix, const double *f, unsigned n) {
    return result;
 }
 
-/* Function returns the number of the row with the greatest primary element */
+/* 
+ * Function returns the number of the row with the greatest primary element.
+ */
 unsigned matrix_find_greatest(double **matrix, unsigned current, unsigned n) {
     unsigned result = current;
     for (unsigned j = current + 1; j < n; j++) {
@@ -174,16 +177,24 @@ unsigned matrix_find_greatest(double **matrix, unsigned current, unsigned n) {
     return result;
 }
 
-/* Swap lines */
+/* 
+ * Function swap specified rows in a matrix.
+ */
 void matrix_swap_rows(double **matrix, unsigned i, unsigned j) {
     double *temp = matrix[i];
     matrix[i] = matrix[j];
     matrix[j] = temp;
 }
 
-/* Function subtracts current line from the following */
-void matrix_subtract(double **matrix, unsigned current, unsigned n, unsigned m) {
+/* 
+ * Function subtracts current line from the following ones.
+ * retruns -1 if division by 0 was about to occur.
+ */
+int matrix_subtract(double **matrix, unsigned current, unsigned n, unsigned m) {
     for (unsigned i = current + 1; i < n; i++) {
+        if (matrix[current][current] == 0) {
+            return -1;
+        }
         double multiplier = matrix[i][current] / matrix[current][current];
         if (multiplier != 0) {
             for (unsigned j = current; j < m; j++) {
@@ -191,21 +202,33 @@ void matrix_subtract(double **matrix, unsigned current, unsigned n, unsigned m) 
             }
         }
     }
+    return 0;
 }
 
-/* Function performs Forward Elimination of the augmented matrix n * m (n >= m) */
-void matrix_forward(double **matrix, unsigned n, unsigned m) {
+/* 
+ * Function performs Forward Elimination of the augmented matrix n * m (n >= m).
+ * Flag signal whether rows should be swapped or not.
+ */
+int matrix_forward(double **matrix, unsigned n, unsigned m, bool to_swap) {
     for (unsigned i = 0; i < n; i++) {
-        // subtract greatest from others
-        unsigned greatest = matrix_find_greatest(matrix, i, n);
-        if (i != greatest) {
-            matrix_swap_rows(matrix, i, greatest);
+        // subtract greatest from the rest
+        if (to_swap) {
+            unsigned greatest = matrix_find_greatest(matrix, i, n);
+            if (i != greatest) {
+                matrix_swap_rows(matrix, i, greatest);
+            }
         }
-        matrix_subtract(matrix, i, n, m);
+        if (matrix_subtract(matrix, i, n, m) == -1) {
+            return -1;
+        }
     }
+
+    return 0;
 }
 
-/* Function normalizes upper triangular n * m matrix */
+/* 
+ * Function normalizes upper triangular n * m matrix.
+ */
 void matrix_normalize(double **matrix, unsigned n, unsigned m) {
     for (unsigned i = 0; i < n; i++) {
         for (unsigned j = i + 1; j < m; j++) {
@@ -215,7 +238,9 @@ void matrix_normalize(double **matrix, unsigned n, unsigned m) {
     }
 }
 
-/* Function performs back substitution */
+/* 
+ * Function performs back substitution.
+ */
 void matrix_back(double **matrix, unsigned n, unsigned m) {
     for (unsigned i = n - 1; i > 0; i--) {
         for (unsigned prev = 0; prev < i; prev++) {
@@ -239,25 +264,32 @@ double matrix_determinant(double **matrix, unsigned n) {
     // calculate upper triangulal matrix
     double **aug = matrix_create(n, n);
     if (aug == NULL) {
-        return 0; //::TODO how to handle?
+        // failed to allocate matrix
+        return 0;
     }
     for (unsigned i = 0; i < n; i++) {
         for (unsigned j = 0; j < n; j++) {
             aug[i][j] = matrix[i][j];
         }
     }
-    matrix_forward(aug, n, n);
+    if (matrix_forward(aug, n, n, false) == -1) {
+        matrix_destroy(aug, n);
+        return 0;
+    }
 
     // calculate determinant
     double result = 1;
     for (unsigned i = 0; i < n; i++) {
         result *= aug[i][i];
     }
+
+    // free memory
+    matrix_destroy(aug, n);
     return result;
 }
 
 /*
- *  Function returns a handle to te inverse of an n * n matrix.
+ *  Function returns a handle to the inverse of a given n * n matrix.
  */
 double **matrix_inverse(double **matrix, unsigned n) {
     // create augmented matrix
@@ -275,7 +307,7 @@ double **matrix_inverse(double **matrix, unsigned n) {
     }
 
     // perform forward elimination and back substitution
-    matrix_forward(aug, n, 2 * n);
+    matrix_forward(aug, n, 2 * n, false);
     matrix_normalize(aug, n, 2 * n);
     matrix_back(aug, n, 2 * n);
 

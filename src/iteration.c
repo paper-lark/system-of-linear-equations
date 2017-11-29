@@ -6,7 +6,9 @@
 extern double **matrix_create(unsigned n, unsigned m);
 extern void matrix_destroy(double **matrix, unsigned n);
 
-/* Function normalizes lower triangular n * m matrix */
+/*
+ * Function normalizes lower triangular n * m matrix.
+ */
 void normalize_reversed(double **matrix, unsigned n, unsigned m) {
     for (unsigned i = 0; i < n; i++) {
         for (unsigned j = 0; j < i; j++) {
@@ -17,7 +19,9 @@ void normalize_reversed(double **matrix, unsigned n, unsigned m) {
     }
 }
 
-/* Function performs back substitution */
+/*
+ * Function performs back substitution.
+ */
 void back_reversed(double **matrix, unsigned n, unsigned m) {
     for (unsigned i = 0; i < n; i++) {
         for (unsigned next = i + 1; next < n; next++) {
@@ -61,7 +65,7 @@ void matrix_iteration_next(const double **a, double **b, const double *f, unsign
 }
 
 /*
- * Function calculates vector norm
+ * Function calculates vector difference.
  */
 double matrix_vector_diff(const double *a, const double *b, unsigned n) {
 	double result = 0;

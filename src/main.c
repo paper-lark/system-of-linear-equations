@@ -35,7 +35,7 @@ extern double *(*matrix_fill_vector)(double x);
 
 
 /*
- * Entry Point
+ * Entry Point.
  */
 int main(int argc, char *argv[]) {
     // read matrix
@@ -100,7 +100,7 @@ int main(int argc, char *argv[]) {
     
     // process if posssible if possible
     if (determinant == 0) {
-        printf("> inverse matrix:\n does not exits\n\n");
+        printf("> inverse matrix:\n does not exist\n\n");
         printf("> solution:\n cannot be found using Gaussian elimination method\n\n");
     } else {
         // calculate inverse matrix
