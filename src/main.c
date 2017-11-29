@@ -10,7 +10,7 @@ typedef enum {
 } Method;
 
 #ifndef OMEGA
-    #define OMEGA 1.3333333333333333
+    #define OMEGA  1.3333333333333333
 #endif
 #define PRECISION 0.00000001
 

@@ -7,7 +7,7 @@ extern double **matrix_create(unsigned n, unsigned m);
 extern void matrix_destroy(double **matrix, unsigned n);
 
 /*
- * Function normalizes lower triangular n * m matrix.
+ * Function normalizes rows of lower triangular n * m matrix.
  */
 void normalize_reversed(double **matrix, unsigned n, unsigned m) {
     for (unsigned i = 0; i < n; i++) {
@@ -28,11 +28,11 @@ void back_reversed(double **matrix, unsigned n, unsigned m) {
             // subtract current row from previous
             double multiplier = matrix[next][i];
             if (multiplier == 0) {
+				printf("> zero!!!\n");
                 continue;
             }
-            for (unsigned j = 0; j < m; j++) {
-                matrix[next][j] -= matrix[i][j] * multiplier;
-            }
+            matrix[next][i] = 0;
+			matrix[next][m - 1] -= matrix[i][m - 1] * multiplier;
         }
     }
 }
@@ -47,7 +47,7 @@ void matrix_iteration_next(const double **a, double **b, const double *f, unsign
 		b[i][n] = f[i];
 		for (unsigned j = i; j < n; j++) {
 			if (i == j) {
-				b[i][n] -= (1 - 1 / omega) * a[i][j] * current[i];
+				b[i][n] -= (1 - 1.0 / omega) * a[i][j] * current[j];
 			} else {
 				b[i][n] -= a[i][j] * current[j];
 			}

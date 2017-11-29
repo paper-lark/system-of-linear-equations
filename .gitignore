@@ -1,6 +1,9 @@
 # File system directories
 .DS_Store
 
+# VS Code folder
+.vscode/*
+
 # Builds
 build/*
 
